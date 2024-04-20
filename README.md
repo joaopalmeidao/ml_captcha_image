@@ -175,7 +175,7 @@ Certifique-se de ter Python 3 instalado em seu sistema.
 
 ### Clone este repositório em sua máquina local
 
-`git clone https://github.com/seu-usuario/ml_captcha_image.git`
+`git clone https://github.com/joaopalmeidao/ml_captcha_image.git`
 
 ### Navegue até o diretório do projeto
 
