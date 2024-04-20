@@ -22,8 +22,12 @@ app = FastAPI(title='Image Captcha Api')
 
 
 @app.post("/api/img_captcha")
-async def create_captcha(image: UploadFile = File(...)):
-    path = os.path.join('temp', 'gambiarra.png')
+async def submit_img_captcha(image: UploadFile = File(...)):
+    foder = 'temp'
+    if not os.path.exists(foder):
+        os.makedirs(foder)
+        
+    path = os.path.join(foder, 'gambiarra.png')
     with open(path, 'wb') as f:
         f.write(image.file.read())
         
