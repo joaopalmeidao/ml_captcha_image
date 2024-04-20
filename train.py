@@ -2,4 +2,4 @@ from module.ml.train import train
 
 
 if __name__ == "__main__":
-    train()
+    train(epochs=150)

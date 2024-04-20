@@ -12,6 +12,9 @@ from .config import ALTURA, LARGURA
 from .pre_process import pre_process_img
 
 
+CAMINHO_MODELO: str = os.path.join('models','epochs_100_seq2seq.keras')
+CAMINHO_INDEX_TO_CHAR: str = os.path.join('models','index_to_char.pickle')
+
 def carregar_dataset(directory: Optional[str] = 'samples') -> pd.DataFrame:
     lista_imagens = list(i for i in os.listdir(directory) if i.endswith('.png'))
     df = pd.DataFrame({'imagens': lista_imagens})
@@ -26,21 +29,21 @@ def load_images(file_paths: Iterable[str], altura: Optional[int] = ALTURA, largu
         images.append(img)
     return np.array(images)
     
-def salvar_modelo(model: models.Sequential, path: Optional[str] = 'epochs_100_seq2seq.keras') -> None:
+def salvar_modelo(model: models.Sequential, path: Optional[str] = CAMINHO_MODELO) -> None:
     model.save(path)
 
-def salvar_index_to_char(index_to_char: dict, path: Optional[str] = os.path.join('models','index_to_char.pickle')) -> None:
+def carregar_modelo(path: Optional[str] = CAMINHO_MODELO) -> models.Sequential:
+    return load_model(path)
+
+def salvar_index_to_char(index_to_char: dict, path: Optional[str] = CAMINHO_INDEX_TO_CHAR) -> None:
     with open(path, 'wb') as f:
         pickle.dump(index_to_char, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-def load_index_to_char(path: Optional[str] = os.path.join('models','index_to_char.pickle')) -> dict:
+def load_index_to_char(path: Optional[str] = CAMINHO_INDEX_TO_CHAR) -> dict:
     with open(path, 'rb') as f:
         return pickle.load(f)
 
-def carregar_modelo(path: Optional[str] = os.path.join('models','epochs_100_seq2seq.keras')) -> models.Sequential:
-    return load_model(path)
-
-def train(): 
+def train(epochs: int = 100, batch_size: int = 128) -> None: 
     df = carregar_dataset()
     print(df)
     
@@ -75,14 +78,14 @@ def train():
         layers.Flatten(),
         layers.RepeatVector(max_length),
         layers.LSTM(64, return_sequences=True),
-        # layers.TimeDistributed(layers.Dense(num_classes, activation='softmax'))  # Camada densa para previsão de cada caractere
-        layers.Dense(num_classes, activation='softmax')  # Atualização da função de ativação para softmax
+        layers.Dense(num_classes, activation='softmax')
     ])
 
     model.compile(optimizer='adam',
-                loss='sparse_categorical_crossentropy')
+                loss='sparse_categorical_crossentropy',
+                metrics=['accuracy'])
 
-    model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_test, y_test))
 
     test_loss, test_acc = model.evaluate(X_test, y_test)
     print('Test accuracy:', test_acc)

@@ -4,6 +4,7 @@ from typing import Optional
 
 from .config import ALTURA, LARGURA
 
+
 def pre_process_img(
     captcha_image_path: str,
     altura: Optional[int] = ALTURA,
