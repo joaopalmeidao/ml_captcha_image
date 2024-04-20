@@ -6,7 +6,7 @@ from tensorflow.keras import layers, models
 from sklearn.model_selection import train_test_split
 from PIL import Image
 from tensorflow.keras.models import load_model
-import json
+import pickle
 
 from .config import ALTURA, LARGURA
 from .pre_process import pre_process_img
@@ -33,13 +33,13 @@ def load_images(file_paths, altura=ALTURA, largura=LARGURA):
 def salvar_modelo(model, path='epochs_100_seq2seq.keras'):
     model.save(path)
 
-def salvar_character_maps(char_to_index, index_to_char, path=os.path.join('models','char_maps.json')):
-    with open(path, 'w') as f:
-        json.dump({'char_to_index': char_to_index, 'index_to_char': index_to_char}, f)
+def salvar_index_to_char(index_to_char, path=os.path.join('models','index_to_char.pickle')):
+    with open(path, 'wb') as f:
+        pickle.dump(index_to_char, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-def load_character_maps(path=os.path.join('models','char_maps.json')):
-    with open(path, 'r') as f:
-        return json.load(f)
+def load_index_to_char(path=os.path.join('models','index_to_char.pickle')):
+    with open(path, 'rb') as f:
+        return pickle.load(f)
 
 def carregar_modelo(path=os.path.join('models','epochs_100_seq2seq.keras')):
     return load_model(path)
@@ -58,7 +58,7 @@ def train():
     char_to_index = {char: i for i, char in enumerate(characters)}
     index_to_char = {i: char for char, i in char_to_index.items()}
     
-    salvar_character_maps(char_to_index, index_to_char)
+    salvar_index_to_char(index_to_char)
 
     y = [[char_to_index[char] for char in sublist] for sublist in y]
 
@@ -92,5 +92,3 @@ def train():
     print('Test accuracy:', test_acc)
     
     salvar_modelo(model)
-
-
