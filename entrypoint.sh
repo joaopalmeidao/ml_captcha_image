@@ -1,0 +1,1 @@
+uvicorn modules.server.wsgi:app --reload
