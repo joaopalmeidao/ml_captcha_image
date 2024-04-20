@@ -1,24 +1,51 @@
 import numpy as np
-import pandas as pd
-import os
-import tensorflow as tf
-from tensorflow.keras import layers, models
-from sklearn.model_selection import train_test_split
-from PIL import Image
+from tensorflow.keras import models
+from typing import Optional
 
-from .config import ALTURA, LARGURA
 from .pre_process import pre_process_img
 
 
-def predict_captcha(model, captcha_image_path, index_to_char):
+def predict_captcha(
+    model: models.Sequential,
+    captcha_image_path: str,
+    index_to_char: dict,
+    solution: Optional[str | None] =None,
+    verbose: Optional[bool] = False
+    ) -> dict:
+    correct_chars = None
+    accuracy = None
+    mean_confidence = None
+    
     img = pre_process_img(captcha_image_path)
     
     predictions = model.predict(img)
     
     decoded_predictions = []
+    confidences = []
     for prediction in predictions[0]:
         predicted_index = np.argmax(prediction)
         predicted_char = index_to_char[predicted_index]
+        confidence = prediction[predicted_index]
         decoded_predictions.append(predicted_char)
+        confidences.append(confidence)
     
-    return ''.join(decoded_predictions)
+    predicted_solution = ''.join(decoded_predictions)
+    mean_confidence = np.mean(confidences)
+    
+    if solution:
+        correct_chars = sum(1 for pred, real in zip(predicted_solution, solution) if pred == real)
+        accuracy = correct_chars / len(solution)
+    
+    result = {
+        "solution": predicted_solution,
+        "accuracy": accuracy,
+        "confidence": mean_confidence.astype(float)
+    }
+    
+    if verbose:
+        print(f'Predicted solution: {predicted_solution}')
+        print(f'Real solution: {solution}')
+        print(f'Accuracy: {accuracy}')
+        print(f'Confidence: {mean_confidence}')
+    
+    return result

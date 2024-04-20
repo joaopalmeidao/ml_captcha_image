@@ -4,44 +4,40 @@ import os
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from sklearn.model_selection import train_test_split
-from PIL import Image
 from tensorflow.keras.models import load_model
 import pickle
+from typing import Optional, Iterable
 
 from .config import ALTURA, LARGURA
 from .pre_process import pre_process_img
 
 
-ALTURA = 100
-LARGURA = 100
-
-
-def carregar_dataset(directory='samples'):
+def carregar_dataset(directory: Optional[str] = 'samples') -> pd.DataFrame:
     lista_imagens = list(i for i in os.listdir(directory) if i.endswith('.png'))
     df = pd.DataFrame({'imagens': lista_imagens})
     df['solucao'] = df['imagens'].apply(lambda x: os.path.splitext(x)[0])
     df['caminho_imagem'] = df['imagens'].apply(lambda x: os.path.join('samples',x))
     return df
 
-def load_images(file_paths, altura=ALTURA, largura=LARGURA):
+def load_images(file_paths: Iterable[str], altura: Optional[int] = ALTURA, largura: Optional[int] = LARGURA) -> np.array:
     images = []
     for path in file_paths:
         img = pre_process_img(path, altura=altura, largura=largura, train=True)
         images.append(img)
     return np.array(images)
     
-def salvar_modelo(model, path='epochs_100_seq2seq.keras'):
+def salvar_modelo(model: models.Sequential, path: Optional[str] = 'epochs_100_seq2seq.keras') -> None:
     model.save(path)
 
-def salvar_index_to_char(index_to_char, path=os.path.join('models','index_to_char.pickle')):
+def salvar_index_to_char(index_to_char: dict, path: Optional[str] = os.path.join('models','index_to_char.pickle')) -> None:
     with open(path, 'wb') as f:
         pickle.dump(index_to_char, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-def load_index_to_char(path=os.path.join('models','index_to_char.pickle')):
+def load_index_to_char(path: Optional[str] = os.path.join('models','index_to_char.pickle')) -> dict:
     with open(path, 'rb') as f:
         return pickle.load(f)
 
-def carregar_modelo(path=os.path.join('models','epochs_100_seq2seq.keras')):
+def carregar_modelo(path: Optional[str] = os.path.join('models','epochs_100_seq2seq.keras')) -> models.Sequential:
     return load_model(path)
 
 def train(): 

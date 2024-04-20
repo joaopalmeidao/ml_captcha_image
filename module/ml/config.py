@@ -1,4 +1,4 @@
 
 
-ALTURA = 100
-LARGURA = 100
+ALTURA: int = 100
+LARGURA: int = 100

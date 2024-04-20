@@ -1,12 +1,8 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, LargeBinary
-from sqlalchemy.orm import sessionmaker
-from uuid import uuid4
 from datetime import datetime
-from PIL import Image
-import io
+from typing import Optional
 import os
 
 from .db import Session
@@ -24,7 +20,10 @@ app = FastAPI(title='Image Captcha Api')
 
 
 @app.post("/api/img_captcha")
-async def submit_img_captcha(image: UploadFile = File(...)):
+async def submit_img_captcha(
+    image: UploadFile = File(...),
+    solution: Optional[str | None] = None
+    ) -> JSONResponse:
     try:
         foder = 'temp'
         if not os.path.exists(foder):
@@ -38,10 +37,19 @@ async def submit_img_captcha(image: UploadFile = File(...)):
         with open(path, 'wb') as f:
             f.write(image.file.read())
             
-        predicted_solution = predict_captcha(modelo_carregado, path, index_to_char)
-        return JSONResponse(content={"solution": predicted_solution})
+        result = predict_captcha(
+            modelo_carregado,
+            path,
+            index_to_char,
+            solution,
+            verbose=True
+            )
+        
+        return JSONResponse(content=result)
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
     finally:
         try:
             os.remove(path)
