@@ -189,4 +189,4 @@ Certifique-se de ter Python 3 instalado em seu sistema.
 
 ### Após instalar as dependências, você pode iniciar o servidor da API usando o seguinte comando
 
-`uvicorn modules.server.wsgi:app --reload --port 8000 --host 0.0.0.0`
+`uvicorn module.server.wsgi:app --reload --port 8000 --host 0.0.0.0`
