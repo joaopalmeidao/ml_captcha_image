@@ -102,6 +102,7 @@
   - [API de Reconhecimento de Captchas](#api-de-reconhecimento-de-captchas) 🌐
   - [Requisitos](#requisitos) 📋
   - [Instalação](#instalação) 💻
+    - [Versão do Python](#versão-do-python) ⚙️
     - [Clone este repositório em sua máquina local](#clone-este-repositório-em-sua-máquina-local) 🔄
     - [Navegue até o diretório do projeto](#navegue-até-o-diretório-do-projeto) 📁
     - [Instale as dependências usando pip](#instale-as-dependências-usando-pip) ⚙️
