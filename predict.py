@@ -1,7 +1,7 @@
 
 
-from modules.ml.predict import predict_captcha
-from modules.ml.train import load_index_to_char, carregar_modelo
+from module.ml.predict import predict_captcha
+from module.ml.train import load_index_to_char, carregar_modelo
 
 
 modelo_carregado = carregar_modelo()

@@ -1,4 +1,4 @@
-from modules.ml.train import train
+from module.ml.train import train
 
 
 if __name__ == "__main__":
