@@ -161,7 +161,7 @@ Após o treinamento, o modelo é avaliado usando o conjunto de teste e as métri
 
 ## Resultados
 
-A precisão do modelo no conjunto de teste é registrada como `Test accuracy: {valor}`.
+A precisão do modelo no conjunto de teste é registrada como `Test accuracy: 0.42403843998908997`.
 
 ## API de Reconhecimento de Captchas
 
@@ -175,11 +175,11 @@ Certifique-se de ter Python 3 instalado em seu sistema.
 
 ### Clone este repositório em sua máquina local
 
-`git clone https://github.com/seu-usuario/nome-do-repositorio.git`
+`git clone https://github.com/seu-usuario/ml_captcha_image.git`
 
 ### Navegue até o diretório do projeto
 
-`cd nome-do-repositorio`
+`cd ml_captcha_image`
 
 ### Instale as dependências usando pip
 
