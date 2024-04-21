@@ -16,7 +16,7 @@ CAMINHO_MODELO: str = os.path.join('models','epochs_100_seq2seq.keras')
 CAMINHO_INDEX_TO_CHAR: str = os.path.join('models','index_to_char.pickle')
 
 def carregar_dataset(directory: Optional[str] = 'samples') -> pd.DataFrame:
-    lista_imagens = list(i for i in os.listdir(directory) if i.endswith('.png'))
+    lista_imagens = list(i for i in os.listdir(directory) if i.endswith(('.png', '.jpg')))
     df = pd.DataFrame({'imagens': lista_imagens})
     df['solucao'] = df['imagens'].apply(lambda x: os.path.splitext(x)[0])
     df['caminho_imagem'] = df['imagens'].apply(lambda x: os.path.join('samples',x))
