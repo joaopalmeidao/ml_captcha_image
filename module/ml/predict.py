@@ -1,12 +1,12 @@
+import tensorflow as tf
 import numpy as np
-from tensorflow.keras import models
 from typing import Optional
 
 from .pre_process import pre_process_img
 
 
 def predict_captcha(
-    model: models.Sequential,
+    model: tf.keras.models.Sequential,
     captcha_image_path: str,
     index_to_char: dict,
     solution: Optional[str | None] =None,

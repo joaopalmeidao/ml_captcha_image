@@ -2,13 +2,11 @@ import numpy as np
 import pandas as pd
 import os
 import tensorflow as tf
-from tensorflow.keras import layers, models
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.models import load_model
 import pickle
 from typing import Optional, Iterable
 
-from .config import ALTURA, LARGURA
+from .config import ALTURA, LARGURA, MAX_SIZE_DATASET, EXTENSIONS
 from .pre_process import pre_process_img
 
 
@@ -17,8 +15,8 @@ CAMINHO_INDEX_TO_CHAR: str = os.path.join('models','index_to_char.pickle')
 
 def carregar_dataset(
     directory: Optional[str] = 'samples',
-    extensions: Iterable[str] = ('.png', '.jpg'), 
-    max_size: int | None = None
+    extensions: Iterable[str] = EXTENSIONS, 
+    max_size: int | None = MAX_SIZE_DATASET
     ) -> pd.DataFrame:
     
     lista_imagens = [i for i in os.listdir(directory) if i.endswith(extensions)]
@@ -38,11 +36,11 @@ def load_images(file_paths: Iterable[str], altura: Optional[int] = ALTURA, largu
         images.append(img)
     return np.array(images)
     
-def salvar_modelo(model: models.Sequential, path: Optional[str] = CAMINHO_MODELO) -> None:
+def salvar_modelo(model: tf.keras.models.Sequential, path: Optional[str] = CAMINHO_MODELO) -> None:
     model.save(path)
 
-def carregar_modelo(path: Optional[str] = CAMINHO_MODELO) -> models.Sequential:
-    return load_model(path)
+def carregar_modelo(path: Optional[str] = CAMINHO_MODELO) -> tf.keras.models.Sequential:
+    return tf.keras.models.load_model(path)
 
 def salvar_index_to_char(index_to_char: dict, path: Optional[str] = CAMINHO_INDEX_TO_CHAR) -> None:
     with open(path, 'wb') as f:
@@ -52,8 +50,14 @@ def load_index_to_char(path: Optional[str] = CAMINHO_INDEX_TO_CHAR) -> dict:
     with open(path, 'rb') as f:
         return pickle.load(f)
 
-def train(epochs: int = 100, batch_size: int = 128) -> None: 
-    df = carregar_dataset()
+def train(
+    epochs: int = 100,
+    batch_size: int = 128,
+    max_size: int | None = MAX_SIZE_DATASET,
+    extensions: Iterable[str] = EXTENSIONS
+    ) -> None: 
+    
+    df = carregar_dataset(max_size=max_size, extensions=extensions)
     print(df)
     
     X = load_images(df['caminho_imagem'])
@@ -76,16 +80,16 @@ def train(epochs: int = 100, batch_size: int = 128) -> None:
     X_train, X_test, y_train, y_test = \
         train_test_split(X, y, test_size=0.2, random_state=42)
 
-    model = models.Sequential([
-        layers.Conv2D(32, (3, 3), activation='relu', input_shape=(ALTURA, LARGURA, 3)),
-        layers.MaxPooling2D((2, 2)),
-        layers.Conv2D(64, (3, 3), activation='relu'),
-        layers.MaxPooling2D((2, 2)),
-        layers.Conv2D(64, (3, 3), activation='relu'),
-        layers.Flatten(),
-        layers.RepeatVector(max_length),
-        layers.LSTM(64, return_sequences=True),
-        layers.Dense(num_classes, activation='softmax')
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(ALTURA, LARGURA, 3)),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.RepeatVector(max_length),
+        tf.keras.layers.LSTM(64, return_sequences=True),
+        tf.keras.layers.Dense(num_classes, activation='softmax')
     ])
 
     model.compile(optimizer='adam',
