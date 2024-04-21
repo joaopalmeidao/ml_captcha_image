@@ -15,11 +15,20 @@ from .pre_process import pre_process_img
 CAMINHO_MODELO: str = os.path.join('models','epochs_100_seq2seq.keras')
 CAMINHO_INDEX_TO_CHAR: str = os.path.join('models','index_to_char.pickle')
 
-def carregar_dataset(directory: Optional[str] = 'samples') -> pd.DataFrame:
-    lista_imagens = list(i for i in os.listdir(directory) if i.endswith(('.png', '.jpg')))
+def carregar_dataset(
+    directory: Optional[str] = 'samples',
+    extensions: Iterable[str] = ('.png', '.jpg'), 
+    max_size: int | None = None
+    ) -> pd.DataFrame:
+    
+    lista_imagens = [i for i in os.listdir(directory) if i.endswith(extensions)]
+    
+    if max_size:
+        lista_imagens = lista_imagens[:max_size]
+        
     df = pd.DataFrame({'imagens': lista_imagens})
     df['solucao'] = df['imagens'].apply(lambda x: os.path.splitext(x)[0])
-    df['caminho_imagem'] = df['imagens'].apply(lambda x: os.path.join('samples',x))
+    df['caminho_imagem'] = df['imagens'].apply(lambda x: os.path.join(directory, x))
     return df
 
 def load_images(file_paths: Iterable[str], altura: Optional[int] = ALTURA, largura: Optional[int] = LARGURA) -> np.array:
@@ -57,8 +66,6 @@ def train(epochs: int = 100, batch_size: int = 128) -> None:
     char_to_index = {char: i for i, char in enumerate(characters)}
     index_to_char = {i: char for char, i in char_to_index.items()}
     
-    salvar_index_to_char(index_to_char)
-
     y = [[char_to_index[char] for char in sublist] for sublist in y]
 
     max_length = max(len(sublist) for sublist in y)
@@ -90,4 +97,5 @@ def train(epochs: int = 100, batch_size: int = 128) -> None:
     test_loss, test_acc = model.evaluate(X_test, y_test)
     print('Test accuracy:', test_acc)
     
+    salvar_index_to_char(index_to_char)
     salvar_modelo(model)
