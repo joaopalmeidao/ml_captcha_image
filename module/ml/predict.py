@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 from typing import Optional
 
-from .pre_process import pre_process_img
+from .pre_process import pre_process_img_cv, pre_process_img
 
 
 def predict_captcha(
@@ -17,6 +17,7 @@ def predict_captcha(
     mean_confidence = None
     
     img = pre_process_img(captcha_image_path)
+    img = np.expand_dims(img, axis=0)
     
     predictions = model.predict(img)
     

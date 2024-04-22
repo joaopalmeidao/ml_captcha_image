@@ -4,10 +4,10 @@ import os
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 import pickle
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Literal
 
 from .config import ALTURA, LARGURA, MAX_SIZE_DATASET, EXTENSIONS
-from .pre_process import pre_process_img
+from .pre_process import pre_process_img_cv, pre_process_img
 
 
 CAMINHO_MODELO: str = os.path.join('models','epochs_100_seq2seq.keras')
@@ -32,7 +32,7 @@ def carregar_dataset(
 def load_images(file_paths: Iterable[str], altura: Optional[int] = ALTURA, largura: Optional[int] = LARGURA) -> np.array:
     images = []
     for path in file_paths:
-        img = pre_process_img(path, altura=altura, largura=largura, train=True)
+        img = pre_process_img(path, altura=altura, largura=largura)
         images.append(img)
     return np.array(images)
     
@@ -43,6 +43,11 @@ def carregar_modelo(path: Optional[str] = CAMINHO_MODELO) -> tf.keras.models.Seq
     return tf.keras.models.load_model(path)
 
 def salvar_index_to_char(index_to_char: dict, path: Optional[str] = CAMINHO_INDEX_TO_CHAR) -> None:
+    if os.path.exists(path):
+        _index_to_char = load_index_to_char(path)
+        _index_to_char.update(index_to_char)
+        index_to_char = _index_to_char
+        
     with open(path, 'wb') as f:
         pickle.dump(index_to_char, f, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -54,8 +59,14 @@ def train(
     epochs: int = 100,
     batch_size: int = 128,
     max_size: int | None = MAX_SIZE_DATASET,
-    extensions: Iterable[str] = EXTENSIONS
-    ) -> None: 
+    extensions: Iterable[str] = EXTENSIONS,
+    existing_model_path: Optional[str] | None = None,
+    img_mode: Literal['L','RGB'] = 'RGB'
+) -> None: 
+    if img_mode == 'L':
+        img_mode = 1
+    else:
+        img_mode = 3
     
     df = carregar_dataset(max_size=max_size, extensions=extensions)
     print(df)
@@ -79,24 +90,40 @@ def train(
 
     X_train, X_test, y_train, y_test = \
         train_test_split(X, y, test_size=0.2, random_state=42)
+        
+    # Carregar um modelo existente, se especificado
+    if existing_model_path:
+        model = carregar_modelo(existing_model_path)
+    else:
 
-    model = tf.keras.models.Sequential([
-        tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(ALTURA, LARGURA, 3)),
-        tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-        tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.RepeatVector(max_length),
-        tf.keras.layers.LSTM(64, return_sequences=True),
-        tf.keras.layers.Dense(num_classes, activation='softmax')
-    ])
+        model = tf.keras.models.Sequential([
+            tf.keras.layers.Input(shape=(ALTURA, LARGURA, img_mode)),
+            tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.RepeatVector(max_length),
+            tf.keras.layers.LSTM(64, return_sequences=True),
+            tf.keras.layers.Dense(num_classes, activation='softmax')
+        ])
 
-    model.compile(optimizer='adam',
-                loss='sparse_categorical_crossentropy',
-                metrics=['accuracy'])
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001)
+        model.compile(
+            optimizer='adam',
+            # optimizer=optimizer,
+            loss='sparse_categorical_crossentropy',
+            metrics=['accuracy'],
+        )
 
-    model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_test, y_test))
+    history = model.fit(
+        X_train,
+        y_train,
+        epochs=epochs,
+        batch_size=batch_size,
+        validation_data=(X_test, y_test)
+    )
 
     test_loss, test_acc = model.evaluate(X_test, y_test)
     print('Test accuracy:', test_acc)
