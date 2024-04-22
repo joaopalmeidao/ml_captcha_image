@@ -21,7 +21,7 @@ app = FastAPI(title='Image Captcha Api')
 
 @app.post("/api/img_captcha")
 async def submit_img_captcha(
-    image: UploadFile = File(...),
+    image: UploadFile = File(..., media_type="image/*"),
     solution: Optional[str | None] = None
     ) -> JSONResponse:
     try:
