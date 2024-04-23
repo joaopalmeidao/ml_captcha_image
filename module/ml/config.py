@@ -1,5 +1,5 @@
-ALTURA: int = 100
-LARGURA: int = 100
+ALTURA: int = 200
+LARGURA: int = 50
 
 MAX_SIZE_DATASET:int | None = 2000
 

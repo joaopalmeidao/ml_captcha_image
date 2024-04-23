@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import tensorflow as tf
 from PIL import Image
 from typing import Optional, Literal
 
@@ -10,11 +11,16 @@ def pre_process_img(
     captcha_image_path: str,
     altura: Optional[int] = ALTURA,
     largura: Optional[int] = LARGURA,
-    img_mode: Literal['L', 'RGB'] = 'RGB'
+    img_mode: Literal['L', 'RGB'] = 'L'
     ) -> np.array:
-    img = Image.open(captcha_image_path).convert(img_mode)
-    img = img.resize((altura, largura))
-    img = np.array(img) / 255.0
+    img = tf.io.read_file(captcha_image_path) 
+    # Converting the image to grayscale 
+    img = tf.io.decode_png(img, channels=1) 
+    img = tf.image.convert_image_dtype(img, tf.float32) 
+    # Resizing to the desired size 
+    img = tf.image.resize(img, [altura, largura]) 
+    # Transposing the image 
+    img = tf.transpose(img, perm=[1, 0, 2]) 
     
     return img
 
