@@ -7,13 +7,12 @@ import os
 
 from .db import Session
 
-from module.ml.predict import predict_captcha
-from module.ml.train import load_index_to_char, carregar_modelo
 from module.core.utils import random_generator
+from module.ml.model import load_model
+from module.ml.predict import predict_captcha
 
 
-modelo_carregado = carregar_modelo()
-index_to_char = load_index_to_char()
+data_modelo = load_model()
 
 
 app = FastAPI(title='Image Captcha Api')
@@ -38,11 +37,11 @@ async def submit_img_captcha(
             f.write(image.file.read())
             
         result = predict_captcha(
-            modelo_carregado,
+            data_modelo['model'],
             path,
-            index_to_char,
+            data_modelo['num_to_char'],
+            max([len(label) for label in data_modelo['labels']]),
             solution,
-            verbose=True
             )
         
         return JSONResponse(content=result)

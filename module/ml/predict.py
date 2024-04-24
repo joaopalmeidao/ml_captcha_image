@@ -2,51 +2,68 @@ import tensorflow as tf
 import numpy as np
 from typing import Optional
 
-from .pre_process import pre_process_img_cv, pre_process_img
+from .config import ALTURA, LARGURA
 
+
+def decode_batch_predictions(
+        pred: np.ndarray,
+        num_to_char: tf.keras.layers.StringLookup,
+        max_length: int
+        ):
+    input_len = np.ones(pred.shape[0]) * pred.shape[1]
+    # Use greedy search. For complex tasks, you can use beam search
+    results = tf.keras.backend.ctc_decode(pred, input_length=input_len, greedy=True)[0][0][:, : max_length]
+    # Iterate over the results and get back the text
+    output_text = []
+    for res in results:
+        res = tf.strings.reduce_join(num_to_char(res)).numpy().decode("utf-8")
+        output_text.append(res)
+    return output_text
 
 def predict_captcha(
-    model: tf.keras.models.Sequential,
-    captcha_image_path: str,
-    index_to_char: dict,
-    solution: Optional[str | None] =None,
-    verbose: Optional[bool] = False
-    ) -> dict:
-    correct_chars = None
-    accuracy = None
-    mean_confidence = None
+        model: tf.keras.models.Model,
+        img_path: str,
+        num_to_char: tf.keras.layers.StringLookup,
+        max_length: int,
+        solution: Optional[str | None] = None,
+        img_height: int = ALTURA,
+        img_width: int = LARGURA
+        ):
+    # Carregar a imagem do caminho fornecido
+    img = tf.io.read_file(img_path)
+    img = tf.io.decode_png(img, channels=1)
+    img = tf.image.convert_image_dtype(img, tf.float32)
+    img = tf.image.resize(img, [img_height, img_width])
+    img = tf.transpose(img, perm=[1, 0, 2])
+    img = tf.expand_dims(img, axis=0)  # Adicionando dimensão de lote
     
-    img = pre_process_img(captcha_image_path)
-    img = np.expand_dims(img, axis=0)
+    # Fazer previsão
+    pred = model.predict(img)
     
-    predictions = model.predict(img)
+    # Decodificar a previsão
+    pred_text = decode_batch_predictions(pred, num_to_char, max_length)[0]
     
-    decoded_predictions = []
+    # Calcula a confiança
     confidences = []
-    for prediction in predictions[0]:
-        predicted_index = np.argmax(prediction)
-        predicted_char = index_to_char[predicted_index]
-        confidence = prediction[predicted_index]
-        decoded_predictions.append(predicted_char)
+    for prediction in pred[0]:
+        max_prob_index = np.argmax(prediction)
+        confidence = prediction[max_prob_index]
         confidences.append(confidence)
-    
-    predicted_solution = ''.join(decoded_predictions)
     mean_confidence = np.mean(confidences)
     
+    # Calcula a precisão, se a solução for fornecida
+    accuracy = None
     if solution:
-        correct_chars = sum(1 for pred, real in zip(predicted_solution, solution) if pred == real)
+        correct_chars = sum(1 for pred_char, real_char in zip(pred_text, solution) if pred_char == real_char)
         accuracy = correct_chars / len(solution)
     
-    result = {
-        "solution": predicted_solution,
-        "accuracy": accuracy,
-        "confidence": mean_confidence.astype(float)
+    print(f'Predicted solution: {pred_text}')
+    print(f'Real solution: {solution}')
+    print(f'Accuracy: {accuracy}')
+    print(f'Confidence: {mean_confidence}')
+    
+    return {
+        "solution": pred_text,
+        "confidence": float(mean_confidence),
+        "accuracy": accuracy
     }
-    
-    if verbose:
-        print(f'Predicted solution: {predicted_solution}')
-        print(f'Real solution: {solution}')
-        print(f'Accuracy: {accuracy}')
-        print(f'Confidence: {mean_confidence}')
-    
-    return result
