@@ -157,7 +157,7 @@ O modelo de reconhecimento de captcha utiliza uma arquitetura de rede neural con
 
 ## Treinamento do Modelo
 
-O modelo é treinado usando o otimizador Adam e a função de perda sparse categorical crossentropy.
+O modelo é treinado usando o algoritmo de otimização Adam e a função de perda Connectionist Temporal Classification (CTC). Aqui estão os detalhes do treinamento:
 
 - Número de épocas: 100
 - Tamanho do lote: None
