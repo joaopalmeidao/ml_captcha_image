@@ -84,7 +84,9 @@ async def get_package_versions() -> JSONResponse:
         package_versions = {}
         for distribution in importlib.metadata.distributions():
             package_versions[distribution.metadata["Name"]] = distribution.version
+        
         return JSONResponse(content=package_versions)
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -97,5 +99,6 @@ async def get_python_version() -> str:
     try:
         python_version = sys.version
         return python_version
+    
     except Exception as e:
         return str(e)

@@ -176,7 +176,7 @@ Este é um exemplo básico de API desenvolvida usando FastAPI para reconheciment
 
 ## Requisitos
 
-Certifique-se de ter Python 3 instalado em seu sistema.
+Certifique-se de ter Python 3.10.9 instalado em seu sistema.
 
 ## Instalação
 

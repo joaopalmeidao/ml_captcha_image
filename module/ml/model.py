@@ -10,7 +10,7 @@ def save_model(
         num_to_char: tf.keras.layers.StringLookup,
         LABELS: list[str],
         filename: Optional[str] = CAMINHO_DATA_MODEL) -> None:
-    # Salvar o modelo
+
     char_to_num_dict = char_to_num.get_vocabulary()
     num_to_char_dict = num_to_char.get_vocabulary()
 
@@ -29,7 +29,8 @@ def load_model(filename: Optional[str] = CAMINHO_DATA_MODEL) -> dict:
         data = pickle.load(f)
         
     char_to_num = tf.keras.layers.StringLookup( 
-        vocabulary=list(data['char_to_num']), mask_token=None
+        vocabulary=list(data['char_to_num']), 
+        mask_token=None
     ) 
 
     num_to_char = tf.keras.layers.StringLookup( 

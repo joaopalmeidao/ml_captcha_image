@@ -11,9 +11,9 @@ def decode_batch_predictions(
         max_length: int
         ):
     input_len = np.ones(pred.shape[0]) * pred.shape[1]
-    # Use greedy search. For complex tasks, you can use beam search
+
     results = tf.keras.backend.ctc_decode(pred, input_length=input_len, greedy=True)[0][0][:, : max_length]
-    # Iterate over the results and get back the text
+
     output_text = []
     for res in results:
         res = tf.strings.reduce_join(num_to_char(res)).numpy().decode("utf-8")
@@ -29,7 +29,7 @@ def predict_captcha(
         img_height: int = ALTURA,
         img_width: int = LARGURA
         ):
-    # Carregar a imagem do caminho fornecido
+
     img = tf.io.read_file(img_path)
     img = tf.io.decode_png(img, channels=1)
     img = tf.image.convert_image_dtype(img, tf.float32)
@@ -37,13 +37,10 @@ def predict_captcha(
     img = tf.transpose(img, perm=[1, 0, 2])
     img = tf.expand_dims(img, axis=0)  # Adicionando dimensão de lote
     
-    # Fazer previsão
     pred = model.predict(img)
     
-    # Decodificar a previsão
     pred_text = decode_batch_predictions(pred, num_to_char, max_length)[0]
     
-    # Calcula a confiança
     confidences = []
     for prediction in pred[0]:
         max_prob_index = np.argmax(prediction)
@@ -51,7 +48,6 @@ def predict_captcha(
         confidences.append(confidence)
     mean_confidence = np.mean(confidences)
     
-    # Calcula a precisão, se a solução for fornecida
     accuracy = None
     if solution:
         correct_chars = sum(1 for pred_char, real_char in zip(pred_text, solution) if pred_char == real_char)
