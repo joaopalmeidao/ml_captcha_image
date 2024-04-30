@@ -128,7 +128,7 @@ Este projeto consiste no treinamento de um modelo de rede neural convolucional (
 As imagens de captcha são carregadas e pré-processadas da seguinte maneira:
 
 - As imagens são carregadas do caminho especificado no DataFrame.
-- Cada imagem é redimensionada para uma altura e largura padrão de 100x50 pixels.
+- Cada imagem é redimensionada para uma altura e largura padrão de 200x50 pixels.
 - Os valores dos pixels são normalizados para o intervalo [0, 1].
 
 ### Preparação das Soluções
