@@ -1,10 +1,10 @@
 FROM python:3.10.9-slim
-COPY ./requirements.txt .
-RUN pip install -r requirements.txt
-RUN pip cache purge
-COPY . ./ml_captcha_image
-USER root
-WORKDIR /ml_captcha_image
+RUN useradd -ms /bin/bash appuser
+USER appuser
+WORKDIR /home/appuser/ml_captcha_image
+RUN chown -R appuser:appuser /home/appuser/ml_captcha_image
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8000
 RUN chmod +x entrypoint.sh
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["~/ml_captcha_image/entrypoint.sh"]
