@@ -1,1 +1,1 @@
-python3 uvicorn module.server.wsgi:app --reload --host 0.0.0.0 --port 8000
+python3 -m uvicorn module.server.wsgi:app --reload --host 0.0.0.0 --port 8000
