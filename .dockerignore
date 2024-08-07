@@ -3,3 +3,7 @@ __pycache__
 README.md
 .vscode/
 venv
+samples/
+test/
+models/test/
+temp
